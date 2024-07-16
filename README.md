@@ -12,5 +12,6 @@ This is a sample assignment on understanding and using NVIDIA LLM Guardrails
 # Guardrails 
 ## Hello Bot:
 - Currently runs guardrails as presented in [here](https://github.com/NVIDIA/NeMo-Guardrails/tree/develop/examples/bots/hello_world)
+  - Additionally added a flow to disable discussion of 'death'
  
    
