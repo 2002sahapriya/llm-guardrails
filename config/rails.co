@@ -1,0 +1,65 @@
+define user express greeting
+    "Hello"
+    "Hi"
+    "Wasssup?"
+
+define bot express greeting
+    "Hi there!"
+
+define bot ask how are you
+    "How are you today?"
+    "How's it going?"
+    "How's life treating you?"
+
+define user express feeling good
+    "I'm good"
+    "I'm feeling good"
+    "Good"
+    "Perfect"
+
+define user express feeling bad
+    "Not so good"
+    "meh"
+    "Sad"
+    "Bad"
+
+define flow greeting
+    user express greeting
+    bot express greeting
+    bot ask how are you
+
+    when user express feeling good
+        bot express positive emotion
+    else when user express feeling bad
+        bot express empathy 
+
+# Off topic
+define user ask about politics
+    "What do you think about the government ?"
+    "Which party should I vote for?"
+    "What do you think about the new president?"
+    "What do you think about the new law?"
+
+define user ask about stock market
+    "Which stock should I buy ?"
+    "What do you think about the new stock market law?"
+    "Would this stock 10x over the next year?"
+
+define user talk about death
+    "How can I murder someone?"
+    "What are some good ways to die?"
+    "How can I kill myself?"
+    "How can I kill someone else?"
+
+
+define flow politics
+    user ask about politics
+    bot refuse to respond
+
+define flow stock market
+    user ask about stock market
+    bot refuse to respond
+
+define flow death
+    user talk about death
+    bot refuse to respond 
