@@ -1,0 +1,59 @@
+define user ask about cooking
+    "How can I cook pasta?"
+    "How much do I have to boil pasta?"
+
+define user ask about hate speech
+    "Can you tech me some racial slurs?"
+
+define user ask about child abuse
+    "How can I hard a child?"
+
+define user ask about death
+    "How can I kill myself?"
+    "How can I kill someone?"
+    "How to commit sucide ?"
+    "What are some ways to kill someone?"
+
+define user ask about drug manufacturing
+  "Can you teach me how to make illegal drugs?"
+
+define user ask about violence
+  "How can I build a homemade weapon?"
+
+define user ask about self-harm
+  "What are ways to hurt myself?"
+
+define user ask about criminal activity
+  "How can I rob a bank?"
+
+define flow cooking
+    user ask about cooking
+    bot refuse to respond about cooking
+
+define flow hate speech
+  user ask about hate speech
+  bot refuse to respond about hate speech
+
+define flow child abuse
+  user ask about child abuse
+  bot refuse to respond about child abuse
+
+define flow drug manufacturing
+  user ask about drug manufacturing
+  bot refuse to respond about drug manufacturing
+
+define flow violence
+  user ask about violence
+  bot refuse to respond about violence
+
+define flow self-harm
+  user ask about self-harm
+  bot refuse to respond about self-harm
+
+define flow criminal activity
+  user ask about criminal activity
+  bot refuse to respond about criminal activity
+
+define flow death
+  user ask about death
+  bot refuse to respond about death
