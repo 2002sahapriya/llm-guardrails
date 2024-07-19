@@ -8,6 +8,9 @@ This is a sample assignment on understanding and using NVIDIA LLM Guardrails
    - Ensure you have gcc and g++ to run C++ code with python bindings
 4. For an interactive chat experience, run: `nemoguardrails chat`
 5. Make sure to store your `OPENAI_API_KEY` API key in your `.env` file
+---
+# Guardrails Process
+
 --- 
 # Guardrails 
 ## Hello Bot:
@@ -185,3 +188,146 @@ Summary of the outlined sequence of steps:
    - Generate bot message: Predefined message or flow is not found for the bot's canonical form, so LLM is prompted to compute the bot's message via `generate_bot_message`.
 ![Screenshot 2024-07-18 at 9 43 18 PM](https://github.com/user-attachments/assets/f3e2e10d-7779-49c3-b69b-c5f3337d1fd4)
 ![Screenshot 2024-07-18 at 9 43 30 PM](https://github.com/user-attachments/assets/6b560a7c-83e1-4a8c-8471-1cab52acb3c0)
+
+---
+# ABC Bot Demo Use Case
+This overview describes a use case for a fictional company, ABC Company, with a bot, ABC bot, that assists employees by providing information on the organization's employee handbook and policies. 
+1. Input Moderation: Verify that any user input is safe before proceeding.
+2. Output Moderation: Ensures that the bot's output is not offensive and does not include specific words
+3. Preventing off-topic questions: Guarantee that the bot only responds to specific topics
+4. Retrival Augmented Generation: Integrate external knowledge bases
+
+## Configuration Guide 
+1. General Options: which LLM(s) to use, general instructions (similar to system prompts), sample conversation, which rails are active, specific rails configuration options, etc.; these options are typically placed in a `config.yml` file.
+2. Rails: Colang flows implementing the rails; these are typically placed in a `rails` folder.
+3. Actions: custom actions implemented in Python; these are typically placed in an `actions.py` module in the root of the config or in an `actions` sub-package.
+4. Knowledge Base Documents: documents that can be used in a RAG (Retrieval-Augmented Generation) scenario using the built-in Knowledge Base support; these documents are typically placed in a kb folder.
+5. Initialization Code: custom Python code performing additional initialization, e.g. registering a new type of LLM.
+
+### General Instructions
+The general instruction (similar to a system prompt) get appended at the beginning of every prompt, and you can configure them as show below:
+```
+instructions:
+  - type: general
+    content: |
+      Below is a conversation between the NeMo Guardrails bot and a user.
+      The bot is talkative and provides lots of specific details from its context.
+      If the bot does not know the answer to a question, it truthfully says it does not know.
+```
+
+### Sample Conversation
+The sample conversation sets the tone for how the conversation between the user and the bot should go. It will help the LLM learn better the format, the tone of the conversation, and how verbose responses should be. This section should have a minimum of two turns. Since we append this sample conversation to every prompt, it is recommended to keep it short and relevant.
+```
+sample_conversation: |
+  user "Hello there!"
+    express greeting
+  bot express greeting
+    "Hello! How can I assist you today?"
+  user "What can you do for me?"
+    ask about capabilities
+  bot respond about capabilities
+    "As an AI assistant, I can help provide more information on NeMo Guardrails toolkit. This includes question answering on how to set it up, use it, and customize it for your application."
+  user "Tell me a bit about the what the toolkit can do?"
+    ask general question
+  bot response for general question
+    "NeMo Guardrails provides a range of options for quickly and easily adding programmable guardrails to LLM-based conversational systems. The toolkit includes examples on how you can create custom guardrails and compose them together."
+  user "what kind of rails can I include?"
+    request more information
+  bot provide more information
+    "You can include guardrails for detecting and preventing offensive language, helping the bot stay on topic, do fact checking, perform output moderation. Basically, if you want to control the output of the bot, you can do it with guardrails."
+  user "thanks"
+    express appreciation
+  bot express appreciation and offer additional help
+    "You're welcome. If you have any more questions or if there's anything else I can help you with, please don't hesitate to ask."
+```
+
+### LLM Prompts
+You can customize the prompts that are used for the various LLM tasks (eg. generate_user_intent, generate_next_step, generate_bot_message) using the `prompt` key. 
+For example, to override the prompt used for the generate_user_intent task for the openai/gpt-3.5-turbo model:
+```
+prompts:
+  - task: generate_user_intent
+    models:
+      - openai/gpt-3.5-turbo
+    max_length: 3000
+    content: |-
+      <<This is a placeholder for a custom prompt for generating the user intent>>
+```
+
+- For each task, you can also specify the maximum length of the prompt to be used for the LLM call in terms of the number of characters. This is useful if you want to limit the number of tokens used by the LLM or when you want to make sure that the prompt length does not exceed the maximum context length. When the maximum length is exceeded, the prompt is truncated by removing older turns from the conversation history until the length of the prompt is less than or equal to the maximum length. The default maximum length is 16000 characters.
+
+The full list of tasks used by the NeMo Guardrails toolkit is the following:
+1. `general`: generate the next bot message, when no canonical forms are used;
+2. `generate_user_intent`: generate the canonical user message;
+3. `generate_next_steps`: generate the next thing the bot should do/say;
+4. `generate_bot_message`: generate the next bot message;
+5. `generate_value`: generate the value for a context variable (a.k.a. extract user-provided values)
+6. `self_check_facts`: check the facts from the bot response against the provided evidence;
+7. `self_check_input`: check if the input from the user should be allowed;
+8. `self_check_output`: check if bot response should be allowed;
+9. `self_check_hallucination`: check if the bot response is a hallucination.
+
+## Guardrail Definitions
+Guardrails (or rails for short) are implemented through flows. Depending on their role, rails can be split into several main categories:
+1. Input rails: triggered when a new input from the user is received
+2. Output rails: triggered when a new output should be sent to the user
+3. Dialog rails: triggered after a user message is interpreted, i.e, a canonical form has been identified
+4. Retrival rails: triggered aftter the retrival step has been performed (ie. the `retrieve_relevant_chunks` action has finished)
+5. Execution rails: triggered before and after an action is invoked
+
+The active rails are configured using the `rails` key in `config.yml`. Below is a quick example:
+```python
+rails:
+  # Input rails are invoked when a new message from the user is received.
+  input:
+    flows:
+      - check jailbreak
+      - check input sensitive data
+      - check toxicity
+      - ... # Other input rails
+
+  # Output rails are triggered after a bot message has been generated.
+  output:
+    flows:
+      - self check facts
+      - self check hallucination
+      - check output sensitive data
+      - ... # Other output rails
+
+  # Retrieval rails are invoked once `$relevant_chunks` are computed.
+  retrieval:
+    flows:
+      - check retrieval sensitive data
+```
+
+All the flows that are not input, output, or retrieval flows are considered dialog rails and execution rails, i.e., flows that dictate how the dialog should go and when and how to invoke actions. Dialog/execution rail flows don’t need to be enumerated explicitly in the config. However, there are a few other configuration options that can be used to control their behavior.
+
+```python
+rails:
+  # Dialog rails are triggered after user message is interpreted, i.e., its canonical form
+  # has been computed.
+  dialog:
+    # Whether to try to use a single LLM call for generating the user intent, next step and bot message.
+    single_call:
+      enabled: False
+
+      # If a single call fails, whether to fall back to multiple LLM calls.
+      fallback_to_multiple_calls: True
+
+    user_messages:
+      # Whether to use only the embeddings when interpreting the user's message
+      embeddings_only: False
+```
+
+### Input Rails
+Input rails process the message from the user. For example:
+```python
+define flow self check input
+  $allowed = execute self_check_input
+
+  if not $allowed
+    bot refuse to respond
+    stop
+```
+Input rails can alter the input by changing the `$user_message` context variable.
+
