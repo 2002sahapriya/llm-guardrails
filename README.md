@@ -8,7 +8,7 @@ This is a sample assignment on understanding and using NVIDIA LLM Guardrails
    - Ensure you have gcc and g++ to run C++ code with python bindings
 4. For an interactive chat experience, run: `nemoguardrails chat`
 5. Make sure to store your `OPENAI_API_KEY` API key in your `.env` file
-
+--- 
 # Guardrails 
 ## Hello Bot:
 - Currently runs guardrails as presented in [here](https://github.com/NVIDIA/NeMo-Guardrails/tree/develop/examples/bots/hello_world)
@@ -176,10 +176,12 @@ Summary of the outlined sequence of steps:
    - Determine canonical form: LLM computes the canonical form `express greeting` using `generate_user_intent` prompt
    - Determine next step: A flow is found that matches the canonical form `express greeting`
    - Generate the bot message: Uses the predefined messages from the flow
+  ![Screenshot 2024-07-18 at 9 43 01 PM](https://github.com/user-attachments/assets/a71e579b-014f-4953-be9e-171c61862c8a)
+
 2. Pre-defined Flow Does Not Exist
    - User input message
    - Determine canonical form: LLM computes the canonical form `Ask general question` by calling `generate_user_input`
    - Determine next steps: Flow for canonical message is not found. LLM is prompted to compute the bot's canonical form via `generate_next_step`
    - Generate bot message: Predefined message or flow is not found for the bot's canonical form, so LLM is prompted to compute the bot's message via `generate_bot_message`.
-
-
+![Screenshot 2024-07-18 at 9 43 18 PM](https://github.com/user-attachments/assets/f3e2e10d-7779-49c3-b69b-c5f3337d1fd4)
+![Screenshot 2024-07-18 at 9 43 30 PM](https://github.com/user-attachments/assets/6b560a7c-83e1-4a8c-8471-1cab52acb3c0)
